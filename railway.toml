@@ -3,10 +3,10 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "python src/simulation/simulator.py"
+# Use Dockerfile CMD for Streamlit
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 
 # Memory optimization
-memoryGB = 1
+memoryGB = 2
 numReplicas = 1
