@@ -1,8 +1,46 @@
 # Big Bang Simulator - Project Handoff
 
 **Date**: 2025-11-03
+**GitHub Repo**: https://github.com/JesseRDaniels/big-bang-simulator
 **Railway URL**: https://big-bang-simulator-production.up.railway.app
 **Railway Project ID**: 09824444-b1c5-4131-88a9-6972222c19b4
+
+---
+
+## 🚀 Quick Start on Laptop
+
+```bash
+# Clone the repository
+git clone https://github.com/JesseRDaniels/big-bang-simulator.git
+cd big-bang-simulator
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Link to Railway (requires Railway CLI)
+brew install railway  # if not installed
+railway login
+railway link  # Select: big-bang-simulator → production
+
+# View current deployment logs
+railway logs --service big-bang-simulator
+
+# Test locally
+streamlit run streamlit_app.py --server.port 8501
+# Open browser to http://localhost:8501
+
+# Make changes and deploy
+git add .
+git commit -m "Your changes"
+git push origin main
+railway up --service big-bang-simulator
+```
+
+---
 
 ## Current Status
 
