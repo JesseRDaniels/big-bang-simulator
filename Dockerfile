@@ -1,6 +1,6 @@
 # Big Bang Simulator - Docker Container
 # Optimized for Railway and Google Cloud Run
-# Build: 2025-11-03-v2 (Streamlit web interface)
+# Build: 2025-11-03-v3 (Lazy loading - fast startup)
 
 FROM python:3.11-slim
 
@@ -30,8 +30,8 @@ ENV MPLBACKEND=Agg
 # Expose Streamlit port
 EXPOSE 8501
 
-# Health check
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
+# No health check - app starts instantly with lazy loading
+# Railway will monitor HTTP responses directly
 
 # Default command: run Streamlit app
 CMD ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]

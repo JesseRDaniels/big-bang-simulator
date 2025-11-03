@@ -59,12 +59,31 @@ def initialize_universe():
     config = load_config()
     with st.spinner("🌌 Initializing universe..."):
         universe = Universe(config)
-
-        # Run simulation to populate history
-        target_time = 50e6 * 365.25 * 24 * 3600  # 50 million years in seconds
-        universe.run_to_time(target_time)
+        # NO precomputation - compute frames on-demand for fast startup
 
     return universe
+
+@st.cache_data
+def get_state_at_time(_universe, target_time):
+    """
+    Get universe state at specific time (cached per time).
+
+    Args:
+        _universe: Universe instance (underscore prevents hashing)
+        target_time: Target time in seconds
+
+    Returns:
+        UniverseState at requested time
+    """
+    # Create temporary universe instance for this computation
+    config = load_config()
+    temp_universe = Universe(config)
+
+    # Compute to target time
+    temp_universe.run_to_time(target_time)
+
+    # Return final state with full density field
+    return temp_universe.get_current_state(include_density_field=True)
 
 def format_time(t_seconds):
     """Convert seconds to readable time format."""
@@ -92,17 +111,10 @@ def format_temp(T):
     else:
         return f"{T:.2e} K"
 
-def create_visualization(universe, frame_idx, x_pos, y_pos, z_pos):
+def create_visualization(state, x_pos, y_pos, z_pos, all_times):
     """Create multi-view visualization."""
-    # Get state at this frame
-    if frame_idx >= len(universe.history):
-        frame_idx = len(universe.history) - 1
-
-    state = universe.history[frame_idx]
-
-    # Get current density field
-    universe.current_time = state.time
-    density_field = universe.density_field
+    # Extract density field from state
+    density_field = state.density_field
     delta = density_field - 1.0  # Density contrast
 
     # Create figure with multi-view layout
@@ -167,47 +179,58 @@ def create_visualization(universe, frame_idx, x_pos, y_pos, z_pos):
     ax_info.text(0.1, 0.5, info_text, fontsize=10, verticalalignment='center',
                  fontfamily='monospace')
 
-    # Temperature evolution plot
-    ax_temp = fig.add_subplot(gs[0, 3])
-    times = [s.time / (1e6 * 365.25 * 24 * 3600) for s in universe.history]  # Myr
-    temps = [s.temperature for s in universe.history]
-    ax_temp.semilogy(times, temps, 'b-', linewidth=2)
-    ax_temp.axvline(state.time / (1e6 * 365.25 * 24 * 3600),
-                   color='r', linestyle='--', label='Current')
-    ax_temp.set_xlabel("Time (Myr)")
-    ax_temp.set_ylabel("Temperature (K)")
-    ax_temp.set_title("Temperature Evolution", fontsize=10)
-    ax_temp.grid(True, alpha=0.3)
-    ax_temp.legend()
+    # Time progress indicator
+    ax_time = fig.add_subplot(gs[0, 3])
+    ax_time.axis('off')
+    current_time_myr = state.time / (1e6 * 365.25 * 24 * 3600)
+    max_time_myr = max(all_times) / (1e6 * 365.25 * 24 * 3600)
+    progress = current_time_myr / max_time_myr if max_time_myr > 0 else 0
 
-    # Scale factor evolution plot
-    ax_scale = fig.add_subplot(gs[1, 3])
-    scales = [s.scale_factor for s in universe.history]
-    ax_scale.semilogy(times, scales, 'g-', linewidth=2)
-    ax_scale.axvline(state.time / (1e6 * 365.25 * 24 * 3600),
-                    color='r', linestyle='--', label='Current')
-    ax_scale.set_xlabel("Time (Myr)")
-    ax_scale.set_ylabel("Scale Factor a(t)")
-    ax_scale.set_title("Expansion History", fontsize=10)
-    ax_scale.grid(True, alpha=0.3)
-    ax_scale.legend()
+    time_text = f"""
+    ⏱️  Cosmic Time Progress
 
-    # Density growth plot
-    ax_growth = fig.add_subplot(gs[2, 2:4])
-    rms_values = [s.density_rms for s in universe.history if s.density_rms is not None]
-    max_values = [s.density_max for s in universe.history if s.density_max is not None]
-    times_density = times[:len(rms_values)]
+    Current: {current_time_myr:.2f} Myr
+    Maximum: {max_time_myr:.2f} Myr
+    Progress: {progress*100:.1f}%
 
-    ax_growth.plot(times_density, rms_values, 'b-', linewidth=2, label='RMS')
-    ax_growth.plot(times_density, max_values, 'r-', linewidth=2, label='Max')
-    if frame_idx < len(rms_values):
-        ax_growth.axvline(times_density[frame_idx], color='orange',
-                         linestyle='--', label='Current')
-    ax_growth.set_xlabel("Time (Myr)")
-    ax_growth.set_ylabel("Density Contrast")
-    ax_growth.set_title("Structure Formation", fontsize=10)
-    ax_growth.grid(True, alpha=0.3)
-    ax_growth.legend()
+    Epoch: {state.epoch}
+    """
+    ax_time.text(0.1, 0.5, time_text, fontsize=11, verticalalignment='center',
+                 fontfamily='monospace')
+
+    # Key Metrics Panel
+    ax_metrics = fig.add_subplot(gs[1, 3])
+    ax_metrics.axis('off')
+    metrics_text = f"""
+    📊 Current Metrics
+
+    Temperature:
+      {format_temp(state.temperature)}
+
+    Scale Factor:
+      a = {state.scale_factor:.3e}
+
+    Hubble Parameter:
+      H = {state.hubble:.3e} s⁻¹
+    """
+    ax_metrics.text(0.1, 0.5, metrics_text, fontsize=11, verticalalignment='center',
+                   fontfamily='monospace')
+
+    # Structure Formation Stats
+    ax_structure = fig.add_subplot(gs[2, 2:4])
+    ax_structure.axis('off')
+    structure_text = f"""
+    🌌 Structure Formation
+
+    Density Perturbations:
+      • RMS: δρ/ρ = {state.density_rms:.3e}
+      • Maximum: δρ/ρ = {state.density_max:.3e}
+      • Minimum: δρ/ρ = {state.density_min:.3e}
+
+    Status: {'Structures forming' if state.density_max > 0.01 else 'Linear regime'}
+    """
+    ax_structure.text(0.1, 0.5, structure_text, fontsize=11, verticalalignment='center',
+                     fontfamily='monospace')
 
     plt.tight_layout()
     return fig
@@ -217,20 +240,27 @@ def main():
     st.markdown('<div class="main-header">🌌 Big Bang Simulator</div>', unsafe_allow_html=True)
     st.markdown('<div class="subtitle">Interactive visualization of cosmic evolution from Planck epoch to structure formation</div>', unsafe_allow_html=True)
 
-    # Initialize universe
+    # Initialize universe (fast - no precomputation)
     universe = initialize_universe()
+
+    # Define time points (in seconds) - logarithmic spacing
+    # From ~1 second to 50 million years
+    num_points = 50
+    time_years = np.logspace(np.log10(1/(365.25*24*3600)), np.log10(50e6), num_points)
+    time_points = time_years * 365.25 * 24 * 3600  # Convert to seconds
 
     # Sidebar controls
     st.sidebar.header("⏱️ Time Control")
 
-    max_frame = len(universe.history) - 1
-    frame_idx = st.sidebar.slider(
-        "Time Frame",
+    time_idx = st.sidebar.slider(
+        "Cosmic Time",
         min_value=0,
-        max_value=max_frame,
+        max_value=len(time_points) - 1,
         value=0,
         help="Slide to explore different epochs in cosmic history"
     )
+
+    target_time = time_points[time_idx]
 
     st.sidebar.header("📍 Position Control")
 
@@ -263,31 +293,35 @@ def main():
     # Info box
     st.sidebar.info("""
     **How to use:**
-    - Use the **Time Frame** slider to explore different epochs
+    - Use the **Cosmic Time** slider to explore different epochs
     - Adjust **X/Y/Z Position** sliders to navigate through 3D space
-    - Watch structure formation in real-time!
+    - Watch structure formation evolve!
 
     **Color scale:**
     - 🔵 Blue = Voids (underdense regions)
     - ⚪ White = Average density
     - 🔴 Red = Overdense structures (future galaxies)
+
+    **Note:** First load of each time point may take a few seconds as the universe evolves to that epoch.
     """)
 
-    # Display current epoch info
-    if frame_idx < len(universe.history):
-        state = universe.history[frame_idx]
-        col1, col2, col3 = st.columns(3)
+    # Get state at selected time (cached for performance)
+    with st.spinner(f"⏳ Computing universe at {format_time(target_time)}..."):
+        state = get_state_at_time(universe, target_time)
 
-        with col1:
-            st.metric("Cosmic Time", format_time(state.time))
-        with col2:
-            st.metric("Temperature", format_temp(state.temperature))
-        with col3:
-            st.metric("Scale Factor", f"{state.scale_factor:.3e}")
+    # Display current epoch info
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric("Cosmic Time", format_time(state.time))
+    with col2:
+        st.metric("Temperature", format_temp(state.temperature))
+    with col3:
+        st.metric("Scale Factor", f"{state.scale_factor:.3e}")
 
     # Create and display visualization
     with st.spinner("🎨 Generating visualization..."):
-        fig = create_visualization(universe, frame_idx, x_pos, y_pos, z_pos)
+        fig = create_visualization(state, x_pos, y_pos, z_pos, time_points)
         st.pyplot(fig)
         plt.close(fig)  # Clean up to save memory
 
