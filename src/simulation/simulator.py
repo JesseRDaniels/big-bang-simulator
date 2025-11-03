@@ -18,8 +18,12 @@ import matplotlib
 import os
 
 # Detect if running in headless environment (cloud/server)
-if os.environ.get('DISPLAY') is None and os.environ.get('MPLBACKEND') is None:
-    matplotlib.use('Agg')  # Non-interactive backend for servers
+# Priority: Respect MPLBACKEND env var if already set (e.g., by Dockerfile)
+mpl_backend = os.environ.get('MPLBACKEND')
+if mpl_backend:
+    matplotlib.use(mpl_backend)  # Use explicitly set backend
+elif os.environ.get('DISPLAY') is None:
+    matplotlib.use('Agg')  # No display available, use non-interactive
 else:
     try:
         matplotlib.use('MacOSX')  # Interactive GUI for macOS
