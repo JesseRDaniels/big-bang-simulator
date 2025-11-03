@@ -1,0 +1,233 @@
+# Big Bang Simulation Configuration
+# All values in SI units unless specified
+
+simulation:
+  # Start at Planck time (earliest meaningful time)
+  start_time: 5.391e-44  # seconds (Planck time)
+  end_time: 1.57e10      # seconds (~500 years after Big Bang)
+
+  # Adaptive timestep (starts at Planck time, grows logarithmically)
+  timestep_mode: "logarithmic"
+  initial_timestep: 5.391e-44  # Planck time
+  timestep_growth_factor: 1.1  # Each step is 10% longer
+
+  # Output control
+  log_interval: 1000      # Log every N steps
+  save_interval: 10000    # Save data every N steps
+
+# Fundamental Physical Constants
+constants:
+  # Dimensional constants
+  speed_of_light: 299792458.0        # m/s
+  gravitational_constant: 6.67430e-11  # m³/(kg·s²)
+  planck_constant: 1.054571817e-34   # J·s
+  boltzmann_constant: 1.380649e-23   # J/K
+
+  # Derived Planck units
+  planck_length: 1.616255e-35        # m
+  planck_time: 5.391247e-44          # s
+  planck_mass: 2.176434e-8           # kg
+  planck_temperature: 1.416784e32    # K
+  planck_energy: 1.956e9             # J (1.22×10¹⁹ GeV)
+
+  # Standard Model (key parameters)
+  fine_structure_constant: 0.0072973525693  # α ≈ 1/137
+  electron_mass: 9.1093837015e-31    # kg (0.511 MeV/c²)
+  proton_mass: 1.67262192369e-27     # kg (938.27 MeV/c²)
+  neutron_mass: 1.67492749804e-27    # kg (939.57 MeV/c²)
+  neutron_lifetime: 879.4            # seconds
+
+  # Conversion factors
+  eV_to_joules: 1.602176634e-19      # J/eV
+  eV_to_kelvin: 1.1604518e4          # K/eV
+
+# Cosmological Parameters (Planck 2018 results)
+cosmology:
+  # Hubble parameter
+  H0: 67.4                # km/s/Mpc (Hubble constant today)
+  H0_SI: 2.184e-18        # s⁻¹ (converted to SI)
+
+  # Density parameters (today)
+  Omega_matter: 0.315     # Total matter (dark + baryonic)
+  Omega_baryon: 0.049     # Baryonic matter only
+  Omega_dark_matter: 0.266  # Dark matter
+  Omega_radiation: 9.2e-5 # Photons + neutrinos
+  Omega_lambda: 0.685     # Dark energy / cosmological constant
+
+  # Derived parameters
+  critical_density_today: 8.5e-27  # kg/m³ (ρ_crit = 3H₀²/8πG)
+  cosmological_constant: 1.1e-52   # m⁻² (Λ in Einstein equations)
+
+  # Curvature
+  Omega_k: 0.0            # Spatial curvature (flat universe)
+
+# Initial Conditions (Planck Epoch)
+initial_conditions:
+  # Time and scale
+  time: 5.391e-44         # seconds (Planck time)
+  scale_factor: 1.0e-35   # arbitrary normalization (a₀)
+
+  # Thermodynamics
+  temperature: 1.417e32   # K (Planck temperature)
+
+  # Energy density (from Friedmann equation)
+  # ρ = 3H²/8πG at Planck epoch
+  energy_density: 5.16e96 # kg/m³
+
+  # Composition (extremely early - unified force epoch)
+  # All Standard Model particles are in thermal equilibrium
+  radiation_dominated: true
+
+# Universe Evolution Epochs (for reference/validation)
+epochs:
+  planck:
+    time: 5.4e-44         # s
+    temperature: 1.4e32   # K
+    description: "Quantum gravity era, unknown physics"
+
+  grand_unification:
+    time: 1.0e-36         # s
+    temperature: 1.0e28   # K (10¹⁵ GeV)
+    description: "GUT phase transition, inflation may start"
+
+  electroweak:
+    time: 1.0e-11         # s
+    temperature: 1.2e15   # K (100 GeV)
+    description: "Electroweak symmetry breaking, Higgs mechanism"
+
+  quark_hadron:
+    time: 1.0e-5          # s
+    temperature: 1.7e12   # K (150 MeV)
+    description: "QCD phase transition, quark confinement"
+
+  neutrino_decoupling:
+    time: 1.0             # s
+    temperature: 1.0e10   # K (1 MeV)
+    description: "Neutrinos stop interacting, free-stream"
+
+  nucleosynthesis_start:
+    time: 10.0            # s
+    temperature: 1.0e9    # K (0.1 MeV)
+    description: "BBN begins, deuterium bottleneck breaks"
+
+  nucleosynthesis_end:
+    time: 1200.0          # s (20 minutes)
+    temperature: 3.0e8    # K (0.03 MeV)
+    description: "BBN ends, primordial abundances frozen"
+
+  matter_radiation_equality:
+    time: 1.6e12          # s (~50,000 years)
+    temperature: 9400.0   # K (0.8 eV)
+    description: "Matter density = radiation density"
+
+  recombination:
+    time: 1.2e13          # s (~380,000 years)
+    temperature: 3000.0   # K (0.26 eV)
+    description: "Atoms form, CMB decouples, universe transparent"
+
+  dark_ages:
+    time: 3.8e14          # s (~12 million years)
+    temperature: 60.0     # K
+    description: "No stars yet, neutral hydrogen"
+
+  reionization:
+    time: 1.5e16          # s (~500 million years)
+    temperature: 20.0     # K
+    description: "First stars form, reionize universe"
+
+# Big Bang Nucleosynthesis Parameters
+nucleosynthesis:
+  # Time window
+  start_time: 10.0        # seconds
+  end_time: 1200.0        # seconds (20 minutes)
+
+  # Nuclear reactions (simplified network)
+  reactions:
+    - name: "n ↔ p"
+      type: "weak_equilibrium"
+      forward: "n → p + e⁻ + ν̄"
+      reverse: "p + e⁻ → n + ν"
+      freeze_out_temp: 8.0e9  # K (~0.7 MeV)
+
+    - name: "d_formation"
+      type: "fusion"
+      reaction: "p + n → d + γ"
+      binding_energy: 2.224  # MeV
+      bottleneck: true
+
+    - name: "He3_formation"
+      type: "fusion"
+      reaction: "d + p → ³He + γ"
+
+    - name: "He4_formation"
+      type: "fusion"
+      reaction: "d + d → ⁴He + γ"
+
+  # Expected primordial abundances (by mass)
+  expected_abundances:
+    hydrogen: 0.75        # 75% H
+    helium4: 0.25         # 25% He-4
+    deuterium: 2.5e-5     # D/H ratio
+    helium3: 1.0e-5       # ³He/H ratio
+    lithium7: 1.0e-10     # ⁷Li/H ratio
+
+# Visualization Settings
+visualization:
+  # Plot types
+  plots:
+    - "scale_factor"      # a(t) vs time
+    - "hubble_parameter"  # H(t) vs time
+    - "density_evolution" # ρ(t) for matter/radiation/DE
+    - "temperature"       # T(t) vs time
+    - "equation_of_state" # w(t) = p/ρ
+
+  # Time axis
+  time_scale: "logarithmic"  # log scale for huge time range
+
+  # Update frequency
+  update_interval: 1000   # Update plots every N steps
+
+  # Style
+  colors:
+    matter: "#FF6B6B"
+    radiation: "#FFA500"
+    dark_energy: "#4ECDC4"
+    total: "#2C3E50"
+
+# Physics Modes
+modes:
+  # Which physics to include
+  include_matter: true
+  include_radiation: true
+  include_dark_energy: true
+  include_curvature: false  # Flat universe (Ωₖ = 0)
+
+  # Simplifications
+  use_radiation_approximation: true  # ρᵣ ∝ a⁻⁴
+  use_matter_dust: true              # p = 0 for matter
+  use_cosmological_constant: true    # w = -1 for dark energy
+
+# Structure Formation (3D density field)
+structure:
+  # Grid size for 3D density field
+  # Memory usage: grid_size³ × 8 bytes per float
+  # 64³ = 2 MB, 128³ = 16 MB, 256³ = 134 MB
+  grid_size: 64  # Reduced from 256 for memory efficiency
+
+  # Initial perturbation amplitude (from inflation)
+  initial_delta_rho: 1.0e-5  # δρ/ρ ~ 10⁻⁵
+
+# Numerical Settings
+numerics:
+  # ODE solver
+  solver: "RK45"          # Runge-Kutta 4(5) adaptive
+  rtol: 1.0e-8            # Relative tolerance
+  atol: 1.0e-10           # Absolute tolerance
+
+  # Stability
+  max_timestep: 1.0e10    # seconds (max step size)
+  min_timestep: 1.0e-44   # seconds (Planck time minimum)
+
+  # Validation
+  energy_conservation_tolerance: 1.0e-6
+  friedmann_constraint_tolerance: 1.0e-6

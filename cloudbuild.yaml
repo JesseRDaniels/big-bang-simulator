@@ -1,0 +1,38 @@
+# Google Cloud Build configuration
+# For Cloud Run deployment
+
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/big-bang-simulator:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/big-bang-simulator:latest',
+      '.'
+    ]
+
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/big-bang-simulator:$COMMIT_SHA']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'big-bang-simulator'
+      - '--image=gcr.io/$PROJECT_ID/big-bang-simulator:$COMMIT_SHA'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--timeout=3600'
+      - '--max-instances=1'
+      - '--no-allow-unauthenticated'
+
+images:
+  - 'gcr.io/$PROJECT_ID/big-bang-simulator:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/big-bang-simulator:latest'
+
+timeout: 1200s
