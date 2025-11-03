@@ -1,5 +1,6 @@
 # Big Bang Simulator - Docker Container
 # Optimized for Railway and Google Cloud Run
+# Build: 2025-11-03-v2 (Streamlit web interface)
 
 FROM python:3.11-slim
 
