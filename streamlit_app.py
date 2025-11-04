@@ -63,13 +63,12 @@ def initialize_universe():
 
     return universe
 
-@st.cache_data
-def get_state_at_time(_universe, target_time):
+@st.cache_data(show_spinner=False)
+def get_state_at_time(target_time):
     """
     Get universe state at specific time (cached per time).
 
     Args:
-        _universe: Universe instance (underscore prevents hashing)
         target_time: Target time in seconds
 
     Returns:
@@ -313,7 +312,11 @@ def main():
     # Get state at selected time (cached for performance)
     # Note: First computation for each time point may take 10-30 seconds
     with st.spinner(f"⏳ Computing universe at {format_time(target_time)}... (this may take 10-30 seconds for first load)"):
-        state = get_state_at_time(universe, target_time)
+        state = get_state_at_time(target_time)
+
+    # Debug: Show state object ID to verify it's changing
+    if st.sidebar.checkbox("Show Debug Info", value=False):
+        st.sidebar.code(f"State ID: {id(state)}\nTime: {state.time:.2e}s\nTemp: {state.temperature:.2e}K")
 
     # Display current epoch info
     col1, col2, col3 = st.columns(3)
