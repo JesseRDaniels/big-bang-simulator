@@ -257,10 +257,15 @@ def main():
         min_value=0,
         max_value=len(time_points) - 1,
         value=0,
-        help="Slide to explore different epochs in cosmic history"
+        key="time_slider",
+        help="Slide to explore different epochs in cosmic history. First load of each time may take 10-30 seconds."
     )
 
     target_time = time_points[time_idx]
+
+    # Show current time selection
+    st.sidebar.markdown(f"**Selected Time:** {format_time(target_time)}")
+    st.sidebar.markdown(f"**Time Index:** {time_idx + 1} / {len(time_points)}")
 
     st.sidebar.header("📍 Position Control")
 
@@ -306,7 +311,8 @@ def main():
     """)
 
     # Get state at selected time (cached for performance)
-    with st.spinner(f"⏳ Computing universe at {format_time(target_time)}..."):
+    # Note: First computation for each time point may take 10-30 seconds
+    with st.spinner(f"⏳ Computing universe at {format_time(target_time)}... (this may take 10-30 seconds for first load)"):
         state = get_state_at_time(universe, target_time)
 
     # Display current epoch info
