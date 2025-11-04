@@ -3,8 +3,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-# EXPLICIT command to override caching issues
-startCommand = "streamlit run streamlit_app.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true"
+# Let Dockerfile CMD handle the command (uses $PORT variable)
+# startCommand intentionally removed to use Dockerfile CMD
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 
