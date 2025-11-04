@@ -35,4 +35,5 @@ EXPOSE 8501
 
 # Default command: run Streamlit app
 # Use Railway's PORT environment variable (fallback to 8501)
-CMD streamlit run streamlit_app.py --server.port=${PORT:-8501} --server.address=0.0.0.0 --server.headless=true
+# Must use shell form with explicit /bin/sh for variable expansion
+CMD ["/bin/sh", "-c", "streamlit run streamlit_app.py --server.port=${PORT:-8501} --server.address=0.0.0.0 --server.headless=true"]
