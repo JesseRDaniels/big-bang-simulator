@@ -27,11 +27,12 @@ COPY . .
 ENV PYTHONUNBUFFERED=1
 ENV MPLBACKEND=Agg
 
-# Expose Streamlit port
+# Expose Streamlit port (Railway will override with $PORT)
 EXPOSE 8501
 
 # No health check - app starts instantly with lazy loading
 # Railway will monitor HTTP responses directly
 
 # Default command: run Streamlit app
-CMD ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
+# Use Railway's PORT environment variable (fallback to 8501)
+CMD streamlit run streamlit_app.py --server.port=${PORT:-8501} --server.address=0.0.0.0 --server.headless=true
